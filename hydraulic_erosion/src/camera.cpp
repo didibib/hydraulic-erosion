@@ -3,10 +3,11 @@
 
 namespace he
 {
-	Camera::Camera()
+	Camera::Camera(const float& fov, const int& viewWidth, const int& viewHeight, const float& nearPlane, const float& farPlane)
 		: m_yaw(-90), m_pitch(0), 
 		m_forward(0.f, -1.f, 0.f), m_up(0.f, 0.f, 1.f), m_right(1.f, 0.f, 0.f), m_world_up(0.f, 0.f, 1.f)
 	{
+		init(fov, viewWidth, viewHeight, nearPlane, farPlane);
 	}
 	void Camera::init(const float& fov, const int& viewWidth, const int& viewHeight, const float& nearPlane, const float& farPlane)
 		// Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector 

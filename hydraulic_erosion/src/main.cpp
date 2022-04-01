@@ -9,9 +9,13 @@ Program* hydra = new HydraulicErosion();
 
 int main(int argc, char* argv[])
 {
-	window.init(800, 600, "HE");
+	logger::init();
+
+	window.init(800, 600, "Hydraulic Erosion");
+	hydra->init();
 
 	window.run(hydra);
 
+	logger::shutdown();
 	delete hydra;
 }

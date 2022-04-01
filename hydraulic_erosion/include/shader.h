@@ -1,33 +1,32 @@
 #pragma once
 
-namespace util
+namespace he
 {
 	class Shader
 	{
 	public:
-		Shader();
+		Shader(const std::string& filepath);
 		~Shader();
-		// Specify filepath withouth file type.
-		// We assume that .vert and .frag have the same name
-		bool Load(const std::string& filepath);
-		void Begin() const;
-		void End() const;
+		// @param filepath - Specify filepath withouth file type. We assume the filetypes: .vert, .frag
+		bool load(const std::string& filepath);
+		void begin() const;
+		void end() const;
 
-		GLuint GetUniformLocation(const std::string& name) const;
-		void SetInt(const char* name, const int& value) const;
-		void SetFloat(const char* name, const float& value) const;
-		void SetVec2(const char* name, const glm::vec2& vector) const;
-		void SetVec2(const char* name, const float& x, const float& y) const;
-		void SetVec3(const char* name, const glm::vec3& vector) const;
-		void SetVec3(const char* name, const float& x, const float& y, const float& z) const;
-		void SetVec4(const char* name, const glm::vec4& vector) const;
-		void SetVec4(const char* name, const float& x, const float& y, const float& z, const float& w) const;
-		void SetMat4(const char* name, const glm::mat4& matrix) const;
+		GLuint getUniformLocation(const std::string& name) const;
+		void setInt(const char* name, const int& value) const;
+		void setFloat(const char* name, const float& value) const;
+		void setVec2(const char* name, const glm::vec2& vector) const;
+		void setVec2(const char* name, const float& x, const float& y) const;
+		void setVec3(const char* name, const glm::vec3& vector) const;
+		void setVec3(const char* name, const float& x, const float& y, const float& z) const;
+		void setVec4(const char* name, const glm::vec4& vector) const;
+		void setVec4(const char* name, const float& x, const float& y, const float& z, const float& w) const;
+		void setMat4(const char* name, const glm::mat4& matrix) const;
 
 	private:
-		GLuint CompileShader(GLenum shader_type, const std::string& file)  const;
-		void LinkShader(GLuint& vert_id, GLuint& frag_id);
+		GLuint compileShader(GLenum shader_type, const std::string& file)  const;
+		void linkShader(GLuint& vert_id, GLuint& frag_id);
 
-		GLuint m_ProgramId;
+		GLuint m_program_id;
 	};
 }

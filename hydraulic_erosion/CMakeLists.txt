@@ -31,6 +31,17 @@ set(CAMERA
     "src/camera.cpp"
 )
 
+set(VERTEX_BUFFER 
+    "include/vertex.h"
+    "include/vertex_buffer.h"
+    "src/vertex_buffer.cpp"
+)
+
+set(SHADER 
+    "include/shader.h"
+    "src/shader.cpp"
+)
+
 set(HE 
     "include/hydraulic_erosion.h"
     "src/hydraulic_erosion.cpp"
@@ -53,6 +64,8 @@ add_executable(${TARGET}
 	${UTIL}
 	${WINDOW}
 	${CAMERA}
+    ${VERTEX_BUFFER}
+    ${SHADER}
 	${HE}
     ${DROPLET}
     ${HEIGHT_MAP}
@@ -63,7 +76,9 @@ source_group(pch FILES ${PCH})
 source_group(glad FILES ${GLAD})
 source_group(util FILES ${UTIL})
 source_group(window FILES ${WINDOW})
-source_group(camera FILES ${CAMERA})
+source_group(scene/camera FILES ${CAMERA})
+source_group(scene/vertex-buffer FILES ${VERTEX_BUFFER})
+source_group(scene/shader FILES ${SHADER})
 source_group(hydraulic-erosion FILES ${HE} ${DROPLET} ${HEIGHT_MAP})
 
 set_target_output_directories(${TARGET})
@@ -74,6 +89,9 @@ set(IGNORE_PCH
 	"src/glad.c"
 )
 ignore_precompiled_header_msvc(IGNORE_PCH)
+
+set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
+target_compile_definitions(${TARGET} PUBLIC SHADER_DIR_M=${SHADER_DIR})
 
 target_include_directories(${TARGET} PUBLIC
     "include"

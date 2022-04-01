@@ -1,35 +1,73 @@
 #include "hepch.h"
 #include "hydraulic_erosion.h"
+#include "vertex_buffer.h"
+#include "shader.h"
+#include "util.h"
+#include "window.h"
 
 namespace he
 {
     HydraulicErosion::HydraulicErosion()
     {
     }
+
     void HydraulicErosion::init()
     {
-        generateHeightMapData(glm::vec2(512, 512));
+        m_height_data = generateGrid(glm::vec2(1000, 1000));
+        m_terrain = new VertexBuffer("Terrain");
+        m_terrain->init(m_height_data);
+        m_shader = new Shader(util::SHADER_DIR_STR + "basic");
     }
 
-    void HydraulicErosion::update(float)
+    void HydraulicErosion::clear()
     {
-        std::printf("update\n");
+        auto clear_color = glm::vec4(245.f / 255.0f, 245.f / 255.0f, 220.f / 255.0f, 1.0f);
+        glClearColor(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    void HydraulicErosion::draw(float)
+    void HydraulicErosion::update(float deltaTime)
     {
-        std::printf("draw\n");
+        // TODO perform erosion
+
+        m_terrain->update(m_height_data);
     }
 
-    std::vector<float> HydraulicErosion::generateHeightMapData(glm::vec2 size)
+    void HydraulicErosion::draw(float deltaTime)
     {
-        for (int y = 0; y < size.y; y++)
+        Camera& camera = Window::getCamera();
+
+        auto projectionView = camera.getProjMatrix() * camera.getViewMatrix();
+        glm::mat4 model = glm::mat4(1.0f);
+
+        m_shader->begin();
+
+        m_shader->setMat4("u_ProjectionView", projectionView);
+        m_shader->setMat4("u_Model", model);
+
+        m_terrain->bind();
+        m_terrain->draw(GL_LINES);
+        m_terrain->unbind();
+
+        m_shader->end();
+    }
+
+    std::vector<Vertex> HydraulicErosion::generateGrid(glm::vec2 size)
+    {
+        std::vector<Vertex> grid;
+        int halfY = size.y / 2;
+        int halfX = size.x / 2;
+        for (int y = -halfY; y < halfY; y++)
         {
-            for (int x = 0; x < size.x; x++)
+            for (int x = -halfX; x < halfX; x++)
             {
-
+                Vertex v;
+                v.position = glm::vec3(x, y, 0);
+                v.color = glm::vec4(0, 0, 0, 1);
+                v.normal = glm::vec3(0, 0, 1);
+                grid.push_back(v);
             }
         }
-        return std::vector<float>();
+        return grid;
     }
 }

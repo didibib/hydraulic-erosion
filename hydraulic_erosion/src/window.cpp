@@ -2,7 +2,6 @@
 #include "window.h"
 #include "util.h"
 #include "program.h"
-#include "camera.h"
 
 namespace he
 {
@@ -52,8 +51,8 @@ namespace he
 		glfwSetCursorEnterCallback(m_glfw_window, cursorEnterCallback);
 		glfwSetWindowFocusCallback(m_glfw_window, windowFocusCallback);
 
-		// Clear color
-		m_clear_color = glm::vec4(245.f / 255.0f, 245.f / 255.0f, 220.f / 255.0f, 1.0f);
+		m_camera = new Camera(90, width, height, 0.001, 1000);
+		m_camera->setPos({ 0, 0, 200 });
 
 		return true;
 	}
@@ -67,8 +66,9 @@ namespace he
 			m_delta_time = currentTime - previousTime;
 			previousTime = currentTime;
 
-			clear();
+			handleCameraInput();
 
+			program->clear();
 			program->update(m_delta_time);
 			program->draw(m_delta_time);
 
@@ -77,25 +77,32 @@ namespace he
 		}
 	}
 
-	/**
-	 * Render the 3D scene
-	 */
-	void Window::clear()
+	void Window::handleCameraInput()
 	{
-
-		glClearColor(m_clear_color.r, m_clear_color.g, m_clear_color.b, m_clear_color.a);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+		if (!m_rotate_camera)
+		{
+			if (isKeyRepeat(GLFW_KEY_W)) m_camera->move(Direction::Forward, m_delta_time);
+			if (isKeyRepeat(GLFW_KEY_A)) m_camera->move(Direction::Left, m_delta_time);
+			if (isKeyRepeat(GLFW_KEY_S)) m_camera->move(Direction::Backward, m_delta_time);
+			if (isKeyRepeat(GLFW_KEY_D)) m_camera->move(Direction::Right, m_delta_time);
+		}
+		if (isKeyRepeat(GLFW_KEY_LEFT_CONTROL))  m_camera->move(Direction::Down, m_delta_time);
+		if (isKeyRepeat(GLFW_KEY_SPACE))  m_camera->move(Direction::Up, m_delta_time);
 	}
 
 	bool Window::isKeyRepeat(int key)
 	{
-		return m_key_lookup[key] == GLFW_PRESS || m_key_lookup[key] == GLFW_REPEAT;
+		return WINDOW.m_key_lookup[key] == GLFW_PRESS || WINDOW.m_key_lookup[key] == GLFW_REPEAT;
 	}
 
 	bool Window::isKeyPressed(int key)
 	{
-		return m_key_lookup[key] == GLFW_PRESS;
+		return WINDOW.m_key_lookup[key] == GLFW_PRESS;
+	}
+
+	Camera& Window::getCamera()
+	{
+		return *WINDOW.m_camera;
 	}
 
 #pragma region __CALLBACKS

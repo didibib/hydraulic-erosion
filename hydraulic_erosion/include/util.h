@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "perlin_noise.hpp"
+#include "perlin_noise.hpp"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -9,6 +9,8 @@ namespace util
 {
 	typedef unsigned int	uint;
 	typedef unsigned char	byte;
+
+	const static std::string SHADER_DIR_STR = TOSTRING(SHADER_DIR_M);
 	
 	namespace random
 	{
@@ -24,7 +26,7 @@ namespace util
 		inline float Float() { return Uint() * 2.3283064365387e-10f; }
 		inline float Range(float range) { return Float() * range; }
 
-		//static const siv::PerlinNoise perlin{ seed };
+		static const siv::PerlinNoise perlin{ seed };
 	}
 
 	namespace math

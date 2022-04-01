@@ -9,7 +9,7 @@ namespace he
 	class Camera
 	{
 	public:
-		Camera();
+		Camera(const float& fov, const int& viewWidth, const int& viewHeight, const float& nearPlane, const float& farPlane);
 		void init(const float& fov, const int& viewWidth, const int& viewHeight, const float& nearPlane, const float& farPlane);
 
 		void move(const Direction& dir, const float& deltaTime);

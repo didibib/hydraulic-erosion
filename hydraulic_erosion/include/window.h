@@ -1,15 +1,17 @@
 #pragma once
 
+#include "camera.h"
+
 namespace he
 {
 	class Shader;
-	class Camera;
 	class Program;
 
 	// https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
 	class Window
 	{
 		Window() {};
+		void handleCameraInput();
 
 		float m_delta_time = 0;
 		bool m_paused = true;
@@ -22,11 +24,7 @@ namespace he
 		bool m_rotate_camera = false;
 		bool m_reset_cursor = false;
 		glm::vec2 m_cursor_last_pos;
-
-
 		std::map<int, int> m_key_lookup;
-		bool isKeyRepeat(int);
-		bool isKeyPressed(int);
 
 	public:
 		static Window& getInstance()
@@ -35,12 +33,15 @@ namespace he
 			return instance;
 
 		}
+		static bool isKeyRepeat(int);
+		static bool isKeyPressed(int);
+		static Camera& getCamera();
+
 		~Window();
 		Window(Window const&) = delete;
 		void operator=(Window const&) = delete;
 
 		bool init(int, int, const char*);
-		void clear();
 		void run(Program*);
 
 		static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
