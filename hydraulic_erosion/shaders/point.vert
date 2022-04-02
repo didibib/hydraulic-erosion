@@ -11,5 +11,6 @@ uniform mat4 u_ProjectionView;
 void main()
 {
     gl_Position = u_ProjectionView * u_Model * vec4(a_Position, 1.0);
+    gl_PointSize = 5;
     Color = a_Color;
 }
