@@ -39,9 +39,6 @@ namespace he
 		// Simulate a certain amount of droplets before we update our terrain
 		for (int i = 0; i < m_DROPS_PER_ITER; i++)
 		{
-			if (m_n_drops++ < m_MAX_DROPS)
-				break;
-
 			// Create a new drop
 			float x = util::random::Range(m_grid_size.x);
 			float y = util::random::Range(m_grid_size.y);
@@ -51,7 +48,6 @@ namespace he
 		}
 
 		// Perform thermal erosion
-
 		m_terrain->update(m_height_data);
 		m_water->update(m_droplets);
 	}
@@ -61,8 +57,8 @@ namespace he
 		int x, y;
 		float u, v;
 		int cur_steps;
-		glm::vec2 pos;
-		glm::vec2 dir;
+		glm::vec2 pos = glm::vec2(0, 0);
+		glm::vec2 dir = glm::vec2(0, 0);
 		float vel, water, sediment;
 
 		for (int i = 0; i < m_MAX_STEPS; i++)
@@ -112,7 +108,7 @@ namespace he
 		float diff1 = height(x + 1, y) * u + height(x, y) * (1 - u);
 		float diff2 = height(x + 1, y + 1) * u + height(x, y + 1) * (1 - u);
 
-		return diff1 * (1-v) + diff2 * v;
+		return diff1 * (1 - v) + diff2 * v;
 	}
 
 	float HydraulicErosion::height(int x, int y)
