@@ -4,37 +4,14 @@
 
 namespace he
 {
-	Shader::Shader(const std::string& filepath) : m_program_id(0)
+	Shader::Shader() : m_program_id(0)
 	{
-		load(filepath);
+
 	}
 
 	Shader::~Shader()
 	{
 		glDeleteProgram(m_program_id);
-	}
-
-	bool Shader::load(const std::string& filepath)
-	{
-		std::string vert_file_loc = filepath + ".vert";
-		std::string vert_shader = util::getFileContents(vert_file_loc.c_str());
-
-		std::string frag_file_loc = filepath + ".frag";
-		std::string frag_shader = util::getFileContents(frag_file_loc.c_str());
-
-		TRACE("Loading Shader: {} -> {}, {}", filepath, vert_file_loc, frag_file_loc);
-
-		GLuint vert_id = compileShader(GL_VERTEX_SHADER, vert_shader);
-		GLuint frag_id = compileShader(GL_FRAGMENT_SHADER, frag_shader);
-
-		if (!vert_id || !frag_id)
-		{
-			return false;
-		}
-
-		linkShader(vert_id, frag_id);
-
-		return true;
 	}
 
 	GLuint Shader::compileShader(GLenum shader_type, const std::string& file) const
@@ -68,13 +45,16 @@ namespace he
 		return shader_id;
 	}
 
-	void Shader::linkShader(GLuint& vert_id, GLuint& frag_id)
+	void Shader::linkShaders(std::vector<GLuint>& ids)
 	{
 		m_program_id = glCreateProgram();
 
 		// Attach our shaders to our program
-		glAttachShader(m_program_id, vert_id);
-		glAttachShader(m_program_id, frag_id);
+		for (int i = 0; i < ids.size(); i++)
+		{
+			GLuint id = ids[i];
+			glAttachShader(m_program_id, id);
+		}
 
 		// Link our program
 		glLinkProgram(m_program_id);
@@ -94,8 +74,11 @@ namespace he
 			// We don't need the program anymore.
 			glDeleteProgram(m_program_id);
 			// Don't leak shaders either.
-			glDeleteShader(vert_id);
-			glDeleteShader(frag_id);
+			for (int i = 0; i < ids.size(); i++)
+			{
+				GLuint id = ids[i];
+				glDeleteShader(id);
+			}
 
 			// Use the infoLog as you see fit.
 			ERROR("Shader failed to link");
@@ -105,11 +88,14 @@ namespace he
 		}
 
 		// Always detach and delete shaders after a successful link.
-		glDetachShader(m_program_id, vert_id);
-		glDetachShader(m_program_id, frag_id);
-		glDeleteShader(vert_id);
-		glDeleteShader(frag_id);
+		for (int i = 0; i < ids.size(); i++)
+		{
+			GLuint id = ids[i];
+			glDetachShader(m_program_id, id);
+			glDeleteShader(id);
+		}
 	}
+
 
 	void Shader::begin() const
 	{

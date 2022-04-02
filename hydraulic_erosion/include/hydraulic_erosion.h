@@ -27,6 +27,6 @@ namespace he
         int m_max_steps;
 
         // Something something droplet functions
-        static std::vector<Vertex> generateGrid(glm::vec2 size);
+        void generateGrid(glm::vec2 size, float frequency = 1.f, float amplitude = 1.f, int octaves = 1);
     };
 }

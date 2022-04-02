@@ -5,10 +5,10 @@ namespace he
 	class Shader
 	{
 	public:
-		Shader(const std::string& filepath);
+		Shader();
 		~Shader();
 		// @param filepath - Specify filepath withouth file type. We assume the filetypes: .vert, .frag
-		bool load(const std::string& filepath);
+		virtual bool load(const std::string& filepath) = 0;
 		void begin() const;
 		void end() const;
 
@@ -23,9 +23,10 @@ namespace he
 		void setVec4(const char* name, const float& x, const float& y, const float& z, const float& w) const;
 		void setMat4(const char* name, const glm::mat4& matrix) const;
 
-	private:
+	protected:
 		GLuint compileShader(GLenum shader_type, const std::string& file)  const;
-		void linkShader(GLuint& vert_id, GLuint& frag_id);
+
+		void linkShaders(std::vector<GLuint>& ids);
 
 		GLuint m_program_id;
 	};
