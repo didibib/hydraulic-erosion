@@ -8,7 +8,7 @@ namespace he
 		m_is_bind(false), m_n_vertices(0), m_n_indices(0),
 		m_vao(0), m_vbo(0), m_ebo(0),
 		m_name(name)
-	{		
+	{
 	}
 
 	void VertexBuffer::init(const std::vector<Vertex>& vertices)
@@ -16,7 +16,7 @@ namespace he
 		init(vertices, std::vector<util::uint>());
 	}
 
-	void VertexBuffer::init(const std::vector<Vertex>& vertices, const std::vector<util::uint>& indices)
+	void VertexBuffer::init(const std::vector<Vertex>& vertices, const std::vector<GLuint>& indices)
 	{
 		m_n_vertices = vertices.size();
 		m_n_indices = indices.size();
@@ -38,7 +38,7 @@ namespace he
 			TRACE("Generating EBO");
 			glGenBuffers(1, &m_ebo);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_n_indices, &indices[0], GL_STATIC_DRAW);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * m_n_indices, &indices[0], GL_STATIC_DRAW);
 		}
 		// Set attributes
 		// Position (location = 0)
@@ -91,7 +91,7 @@ namespace he
 		}
 		if (m_ebo != 0)
 		{
-			glDrawElements(mode, m_n_indices, GL_UNSIGNED_INT, 0);
+			glDrawElements(mode, m_n_indices, GL_UNSIGNED_INT, NULL);
 		}
 		else
 		{

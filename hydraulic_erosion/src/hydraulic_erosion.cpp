@@ -13,8 +13,8 @@ namespace he
 
 	void HydraulicErosion::init()
 	{
-		generateGrid(glm::vec2(1024, 1024), 2, 300, 5);
-		
+		generateGrid(glm::vec2(512, 512), 2, 300, 5);
+
 		m_shader = new BasicShader;
 		m_shader->load(util::SHADER_DIR_STR + "basic");
 	}
@@ -46,7 +46,7 @@ namespace he
 		m_shader->setMat4("u_Model", model);
 
 		m_terrain->bind();
-		m_terrain->draw(GL_TRIANGLE_STRIP);
+		m_terrain->draw(GL_TRIANGLES);
 		m_terrain->unbind();
 
 		m_shader->end();
@@ -54,32 +54,48 @@ namespace he
 
 	void HydraulicErosion::generateGrid(glm::vec2 size, float frequency, float amplitude, int octaves)
 	{
-		std::vector<unsigned int> indices;
 		int halfY = size.y / 2;
 		int halfX = size.x / 2;
-		for (unsigned int y = 0; y < size.y; y++)
+		std::vector<GLuint> indices;
+
+		for (int y = 0; y < size.y; y++)
 		{
-			for (unsigned int x = 0; x < size.x; x++)
+			for (int x = 0; x < size.x; x++)
 			{
-				Vertex v;
+				// Points
 				float xfrac = x / size.x * frequency;
 				float yfrac = y / size.y * frequency;
 				float z = util::random::perlin.octave2D(xfrac, yfrac, octaves);
-				v.position = glm::vec3(x - halfX, y - halfY, z * amplitude);
 
+				Vertex v;
+				v.position = glm::vec3(x - halfX, y - halfY, z * amplitude);
+				//v.position = glm::vec3(x, y, 0);
 				float color = (z + 1) / 2;
 				v.color = glm::vec4(color, color, color, 1);
 				m_height_data.push_back(v);
-
-			/*	if (y >= size.y - 1)
-					continue;*/
-
-				for (unsigned int k = 0; k < 2; k++)      // for each side of the strip
-				{
-					indices.push_back(x + size.x * (y + k));
-				}
 			}
 		}
+
+		for (int y = 0; y < size.y - 1; y++)
+		{
+			for (int x = 0; x < size.x - 1; x++)
+			{
+				// Indices
+				int row1 = y * (size.y + 1);
+				int row2 = (y + 1) * (size.y + 1);
+
+				// triangle 1
+				indices.push_back(row1 + x);
+				indices.push_back(row1 + x + 1);
+				indices.push_back(row2 + x + 1);
+
+				// triangle 2
+				indices.push_back(row1 + x);
+				indices.push_back(row2 + x + 1);
+				indices.push_back(row2 + x);
+			}
+		}
+
 		m_terrain = new VertexBuffer("Terrain");
 		m_terrain->init(m_height_data, indices);
 	}

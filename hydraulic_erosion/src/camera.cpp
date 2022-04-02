@@ -41,10 +41,10 @@ namespace he
 			m_position -= m_right * velocity;
 			break;
 		case Direction::Up:
-			m_position += m_up * velocity;
+			m_position += m_world_up * velocity;
 			break;
 		case Direction::Down:
-			m_position -= m_up * velocity;
+			m_position -= m_world_up * velocity;
 			break;
 		default:
 			break;
@@ -96,6 +96,7 @@ namespace he
 	void Camera::setPos(glm::vec3 const& pos)
 	{
 		m_position = pos;
+		updateCameraVectors();
 	}
 
 	void Camera::setPos(float const& x, float const& y, float const& z)

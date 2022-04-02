@@ -9,7 +9,7 @@ namespace he
 	public:
 		VertexBuffer(std::string name);
 		void init(std::vector<Vertex> const& vertices);
-		void init(std::vector<Vertex> const& vertices, std::vector<unsigned int> const& indices);
+		void init(std::vector<Vertex> const& vertices, std::vector<GLuint> const& indices);
 		void update(std::vector<Vertex> const& vertices);
 		void bind() const;
 		void draw(GLenum mode = GL_TRIANGLES) const;

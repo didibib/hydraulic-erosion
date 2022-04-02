@@ -52,7 +52,7 @@ namespace he
 		glfwSetWindowFocusCallback(m_glfw_window, windowFocusCallback);
 
 		m_camera = new Camera(90, width, height, 0.001, 1000);
-		m_camera->setPos({ 0, 0, 200 });
+		m_camera->setPos({ 200, 200, 10 });
 
 		return true;
 	}
