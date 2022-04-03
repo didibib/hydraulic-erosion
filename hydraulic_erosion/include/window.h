@@ -35,6 +35,7 @@ namespace he
 		}
 		static bool isKeyRepeat(int);
 		static bool isKeyPressed(int);
+		static bool isKeyReleased(int);
 		static Camera& getCamera();
 
 		~Window();

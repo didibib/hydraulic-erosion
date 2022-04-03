@@ -30,6 +30,8 @@ namespace he
         void draw(float) override;
 
     private:
+        bool once = true;
+
         // heightmap
         std::vector<Vertex> m_height_data;
         VertexBuffer* m_terrain = nullptr;
@@ -38,20 +40,21 @@ namespace he
 
         glm::vec2 m_grid_size;
 
-		VertexBuffer* m_water;
         std::vector<Vertex> m_droplets;
+		VertexBuffer* m_water = nullptr;
+        int m_n_drops;                      // Keeps track of how many drops we have already simulated
+        DropletSettings m_ds;
 
         const int m_MAX_DROPS = 100;
         const int m_DROPS_PER_ITER = 10;
-        const int m_MAX_STEPS = 32; // Maximum number of steps a droplet will take.
+        const int m_MAX_STEPS = 64;         // Maximum number of steps a droplet will take.
 
-
-        int m_n_drops; // Keeps track of how many drops we have already simulated
-        DropletSettings m_ds;
-
+        bool m_draw_terrain = true;
+        void drawTerrain(glm::mat4& pvMatrix, glm::mat4 model);
+        void drawDroplets(glm::mat4& pvMatrix, glm::mat4 model);
         void simulateDroplet(float x, float y);
         void generateGrid(glm::vec2 size, float frequency = 1.f, float amplitude = 1.f, int octaves = 1);
-	    // Linearly interpolates point within a quad
+	    // Bilinearly interpolates point within a quad
         float height(float _x, float _y);
         float height(int x, int y);
     };

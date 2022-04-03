@@ -100,6 +100,11 @@ namespace he
 		return WINDOW.m_key_lookup[key] == GLFW_PRESS;
 	}
 
+	bool Window::isKeyReleased(int key)
+	{
+		return WINDOW.m_key_lookup[key] == GLFW_RELEASE;
+	}
+
 	Camera& Window::getCamera()
 	{
 		return *WINDOW.m_camera;

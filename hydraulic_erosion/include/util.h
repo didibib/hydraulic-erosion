@@ -24,6 +24,7 @@ namespace util
 			return seed;
 		}
 		inline float Float() { return Uint() * 2.3283064365387e-10f; }
+		// @param range - Is inclusive
 		inline float Range(float range) { return Float() * range; }
 
 		static const siv::PerlinNoise perlin{ seed };

@@ -13,8 +13,8 @@ namespace he
 
 	void HydraulicErosion::init()
 	{
-		m_grid_size = glm::vec2(512, 512);
-		generateGrid(m_grid_size, 3, 80, 8);
+		m_grid_size = glm::vec2(256, 256);
+		generateGrid(m_grid_size, 3, 40, 4);
 
 		m_water = new VertexBuffer("chwater");
 		m_droplets.resize(1);
@@ -25,6 +25,8 @@ namespace he
 
 		m_point_shader = new BasicShader;
 		m_point_shader->load(util::SHADER_DIR_STR + "point");
+
+		m_ds = { .2f, .5f, .5f, .5f, .5f, 5, 1, 1 };
 	}
 
 	void HydraulicErosion::clear()
@@ -36,15 +38,28 @@ namespace he
 
 	void HydraulicErosion::update(float deltaTime)
 	{
-		// Simulate a certain amount of droplets before we update our terrain
-		for (int i = 0; i < m_DROPS_PER_ITER; i++)
+		// // Simulate a certain amount of droplets before we update our terrain
+		// for (int i = 0; i < m_DROPS_PER_ITER; i++)
+		// {
+		// 	// Create a new drop
+		// 	float x = util::random::Range(m_grid_size.x - 1);
+		// 	float y = util::random::Range(m_grid_size.y - 1);
+
+		// 	// Simulate the drop
+		// 	simulateDroplet(x, y);
+		// }
+		if (Window::isKeyPressed(GLFW_KEY_T)) m_draw_terrain = !m_draw_terrain;
+		if (Window::isKeyPressed(GLFW_KEY_Y)) once = true;
+
+		if (once && Window::isKeyPressed(GLFW_KEY_R))
 		{
 			// Create a new drop
-			float x = util::random::Range(m_grid_size.x);
-			float y = util::random::Range(m_grid_size.y);
+			float x = util::random::Range(m_grid_size.x - 1);
+			float y = util::random::Range(m_grid_size.y - 1);
 
 			// Simulate the drop
 			simulateDroplet(x, y);
+			once = false;
 		}
 
 		// Perform thermal erosion
@@ -57,7 +72,7 @@ namespace he
 		int x, y;
 		float u, v;
 		int cur_steps;
-		glm::vec2 pos = glm::vec2(0, 0);
+		glm::vec2 pos = glm::vec2(startX, startY);
 		glm::vec2 dir = glm::vec2(0, 0);
 		float vel, water, sediment;
 
@@ -65,7 +80,10 @@ namespace he
 		{
 			Vertex vertex;
 			vertex.position = glm::vec3(pos, height(pos.x, pos.y));
-			vertex.color = glm::vec4(1, 0, 0, 1);
+			float cr = util::random::Range(1);
+			float cg = util::random::Range(1);
+			float cb = util::random::Range(1);
+			vertex.color = glm::vec4(cr, cg, cb, 1);
 			m_droplets.push_back(vertex);
 
 			// We work under the assumption that we are still inside a quad, otherwise we would have stopped in the previous step
@@ -84,6 +102,12 @@ namespace he
 
 			float hOld = height(pos.x, pos.y);
 			pos = pos + dir;
+
+			// Check if new position is within the bounds of the grid
+			if (pos.x < 0 || pos.x >= m_grid_size.x - 1
+				|| pos.y < 0 || pos.y >= m_grid_size.y - 1)
+				break;
+
 			float hNew = height(pos.x, pos.y);
 			float hDiff = hNew - hOld;
 
@@ -124,9 +148,18 @@ namespace he
 		auto projectionView = camera.getProjMatrix() * camera.getViewMatrix();
 		glm::mat4 model = glm::mat4(1.0f);
 
+		if (m_draw_terrain)
+			drawTerrain(projectionView, model);
+		drawDroplets(projectionView, model);
+
+
+	}
+
+	void HydraulicErosion::drawTerrain(glm::mat4& pvMatrix, glm::mat4 model)
+	{
 		m_shader->begin();
 
-		m_shader->setMat4("u_ProjectionView", projectionView);
+		m_shader->setMat4("u_ProjectionView", pvMatrix);
 		m_shader->setMat4("u_Model", model);
 
 		m_terrain->bind();
@@ -134,13 +167,16 @@ namespace he
 		m_terrain->unbind();
 
 		m_shader->end();
+	}
 
+	void HydraulicErosion::drawDroplets(glm::mat4& pvMatrix, glm::mat4 model)
+	{
 		m_point_shader->begin();
-		m_point_shader->setMat4("u_ProjectionView", projectionView);
+		m_point_shader->setMat4("u_ProjectionView", pvMatrix);
 		m_point_shader->setMat4("u_Model", model);
 
 		m_water->bind();
-		m_water->draw();
+		m_water->draw(GL_POINTS);
 		m_water->unbind();
 
 		m_point_shader->end();
@@ -148,8 +184,6 @@ namespace he
 
 	void HydraulicErosion::generateGrid(glm::vec2 size, float frequency, float amplitude, int octaves)
 	{
-		int halfY = size.y / 2;
-		int halfX = size.x / 2;
 		std::vector<GLuint> indices;
 
 		for (int y = 0; y < size.y; y++)
@@ -162,8 +196,7 @@ namespace he
 				float z = util::random::perlin.octave2D(xfrac, yfrac, octaves);
 
 				Vertex v;
-				v.position = glm::vec3(x - halfX, y - halfY, z * amplitude);
-				//v.position = glm::vec3(x, y, 0);
+				v.position = glm::vec3(x, y, z * amplitude);
 				float color = (z + 1) / 2;
 				v.color = glm::vec4(color, color, color, 1);
 				m_height_data.push_back(v);
