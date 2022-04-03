@@ -4,11 +4,21 @@
 #include "basic_shader.h"
 #include "util.h"
 #include "window.h"
+#include "colors.h"
 
 namespace he
 {
 	HydraulicErosion::HydraulicErosion()
 	{
+	}
+
+	HydraulicErosion::~HydraulicErosion()
+	{
+		delete m_color_gen;
+		delete m_terrain;
+		delete m_shader;
+		delete m_point_shader;
+		delete m_water;
 	}
 
 	void HydraulicErosion::init()
@@ -33,6 +43,14 @@ namespace he
 		m_ds.p_evaporation = .04f;
 		m_ds.min_slope = .01f;
 		m_ds.gravity = 1.f;
+
+		// Colors
+		m_biome_colors.push_back({ 201.f / 255.f, 178.f / 255.f, 99.f / 255.f, 1.0f });
+		m_biome_colors.push_back({ 135.f / 255.f, 184.f / 255.f, 82.f / 255.f, 1.0f });
+		m_biome_colors.push_back({ 80.f / 255.f, 171.f / 255.f, 93.f / 255.f, 1.0f });
+		m_biome_colors.push_back({ 120.f / 255.f, 120.f / 255.f, 120.f / 255.f, 1.0f });
+		m_biome_colors.push_back({ 200.f / 255.f, 200.f / 255.f, 210.f / 255.f, 1.0f });
+		m_color_gen = new ColorGenerator(m_biome_colors, 0.5f);
 	}
 
 	void HydraulicErosion::clear()
@@ -44,7 +62,12 @@ namespace he
 
 	void HydraulicErosion::update(float deltaTime)
 	{
-		if (Window::isKeyPressed(GLFW_KEY_T)) m_draw_terrain = !m_draw_terrain;
+		if (Window::isKeyPressed(GLFW_KEY_I)) 
+			m_draw_mode = GL_TRIANGLES;
+		if (Window::isKeyPressed(GLFW_KEY_O))
+			m_draw_mode = GL_LINES;
+		if (Window::isKeyPressed(GLFW_KEY_T)) 
+			m_draw_terrain = !m_draw_terrain;
 		if (Window::isKeyPressed(GLFW_KEY_U))
 		{
 			m_add_droplets = !m_add_droplets;
@@ -54,7 +77,6 @@ namespace he
 				m_droplets.resize(1);
 			}
 		}
-		if (Window::isKeyPressed(GLFW_KEY_Y)) once = true;
 
 		for (int i = 0; i < m_DROPS_PER_ITER; i++)
 		{
@@ -67,7 +89,7 @@ namespace he
 			once = false;
 		}
 
-		// Perform thermal erosion
+		m_color_gen->generateColors(m_height_data, 40);
 		m_terrain->update(m_height_data);
 		m_water->update(m_droplets);
 	}
@@ -90,10 +112,7 @@ namespace he
 			{
 				Vertex vertex;
 				vertex.position = glm::vec3(d.pos, height(d.pos.x, d.pos.y));
-				float cr = util::random::Range(1);
-				float cg = util::random::Range(1);
-				float cb = util::random::Range(1);
-				vertex.color = glm::vec4(cr, cg, cb, 1);
+				vertex.color = glm::vec4(0, 0, (1.f / i), 1);
 				m_droplets.push_back(vertex);
 			}
 
@@ -175,10 +194,6 @@ namespace he
 		addHeight(x + 1, y/**/, sediment * (d2 / dTotal));
 		addHeight(x/**/, y + 1, sediment * (d3 / dTotal));
 		addHeight(x + 1, y + 1, sediment * (d4 / dTotal));
-		//m_height_data[x/**/, y/**/].position.z += sediment * (d1 / dTotal);
-		//m_height_data[x + 1, y/**/].position.z += sediment * (d2 / dTotal);
-		//m_height_data[x/**/, y + 1].position.z += sediment * (d3 / dTotal);
-		//m_height_data[x + 1, y + 1].position.z += sediment * (d4 / dTotal);
 	}
 
 	void HydraulicErosion::erode(Droplet& d, glm::vec2 pos, float amount)
@@ -215,7 +230,6 @@ namespace he
 				continue;
 
 			addHeight((int)p.x, (int)p.y, -wiNorm * amount);
-			//m_height_data[(int)p.x, (int)p.y].position.z -= wiNorm * amount;
 		}
 
 		d.sediment += amount;
@@ -266,7 +280,7 @@ namespace he
 		m_shader->setMat4("u_Model", model);
 
 		m_terrain->bind();
-		m_terrain->draw();
+		m_terrain->draw(m_draw_mode);
 		m_terrain->unbind();
 
 		m_shader->end();
@@ -288,7 +302,7 @@ namespace he
 	void HydraulicErosion::generateGrid(glm::vec2 size, float frequency, float amplitude, int octaves)
 	{
 		std::vector<GLuint> indices;
-
+		
 		for (int y = 0; y < size.y; y++)
 		{
 			for (int x = 0; x < size.x; x++)

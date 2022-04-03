@@ -67,6 +67,11 @@ set(HEIGHT_MAP
     "src/height_map.cpp"
 )
 
+set(COLORS
+    "include/colors.h"
+    "src/colors.cpp"
+)
+
 add_executable(${TARGET}
     ${ROOT_FILES}
 	${PCH}
@@ -81,12 +86,13 @@ add_executable(${TARGET}
 	${HE}
     ${DROPLET}
     ${HEIGHT_MAP}
+    ${COLORS}
 )
 
 source_group(\\ FILES ${ROOT_FILES})
 source_group(pch FILES ${PCH})
 source_group(glad FILES ${GLAD})
-source_group(util FILES ${UTIL})
+source_group(util FILES ${UTIL} ${COLORS})
 source_group(window FILES ${WINDOW})
 source_group(scene/camera FILES ${CAMERA})
 source_group(scene/vertex-buffer FILES ${VERTEX_BUFFER})

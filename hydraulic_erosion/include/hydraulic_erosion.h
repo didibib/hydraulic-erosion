@@ -7,6 +7,7 @@ namespace he
 {
     class VertexBuffer;
     class Shader;
+    class ColorGenerator;
 
     struct DropletSettings
     {
@@ -31,6 +32,7 @@ namespace he
     {
     public:
         HydraulicErosion();
+        ~HydraulicErosion();
         void init() override;
         void clear() override;
         void update(float) override;
@@ -41,6 +43,8 @@ namespace he
 
         // heightmap
         std::vector<Vertex> m_height_data;
+        std::vector<glm::vec4> m_biome_colors;
+        ColorGenerator* m_color_gen = nullptr;
         VertexBuffer* m_terrain = nullptr;
         Shader* m_shader = nullptr;
         Shader* m_point_shader = nullptr;
@@ -59,6 +63,7 @@ namespace he
         void distribute(Droplet&, glm::vec2 pos, float sediment);
         void erode(Droplet&, glm::vec2 pos, float amount);
 
+        GLenum m_draw_mode = GL_TRIANGLES;
         bool m_draw_terrain = true;
         void drawTerrain(glm::mat4& pvMatrix, glm::mat4 model);
         bool m_add_droplets = false;
