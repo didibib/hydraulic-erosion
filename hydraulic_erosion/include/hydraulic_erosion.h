@@ -10,14 +10,21 @@ namespace he
 
     struct DropletSettings
     {
-        float inertia;   // [0,1], how much old_dir a droplet keeps after an update
-        float carry_cap; // [0 ..], the total capacity of a droplet
-        float depos_spd; // [0,1], the deposition speed of the sediment in a droplet
-        float ero_spd;   // [0,1], the erosion speed of a droplet
-        float evap_spd;  // [0,1], the evaporation speed of a droplet
-        int ero_r;       // [0 ..], the erosion radius of a droplet
+        float inertia;          // [0,1], how much old_dir a droplet keeps after an update
+        float p_capacity;       // [0,n], the total capacity of a droplet
+        float p_deposit;        // [0,1], deposition speed
+        float p_erosion;        // [0,1], erosion speed
+        float p_evaporation;    // [0,1], evaporation speed
         float min_slope;
         float gravity;
+    };
+
+    struct Droplet
+    {
+        glm::vec2 pos;
+        glm::vec2 dir;
+        float sediment, water, vel;
+        int radius;
     };
 
     class HydraulicErosion : public Program
@@ -49,13 +56,18 @@ namespace he
         const int m_DROPS_PER_ITER = 10;
         const int m_MAX_STEPS = 64;         // Maximum number of steps a droplet will take.
 
+        void distribute(Droplet&, glm::vec2 pos, float sediment);
+        void erode(Droplet&, glm::vec2 pos, float amount);
+
         bool m_draw_terrain = true;
         void drawTerrain(glm::mat4& pvMatrix, glm::mat4 model);
+        bool m_add_droplets = false;
         void drawDroplets(glm::mat4& pvMatrix, glm::mat4 model);
         void simulateDroplet(float x, float y);
         void generateGrid(glm::vec2 size, float frequency = 1.f, float amplitude = 1.f, int octaves = 1);
 	    // Bilinearly interpolates point within a quad
-        float height(float _x, float _y);
+        float height_bli(float _x, float _y);
         float height(int x, int y);
+        void addHeight(int x, int y, float height);
     };
 }
