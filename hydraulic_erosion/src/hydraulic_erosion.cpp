@@ -51,6 +51,8 @@ namespace he
 		m_biome_colors.push_back({ 120.f / 255.f, 120.f / 255.f, 120.f / 255.f, 1.0f });
 		m_biome_colors.push_back({ 200.f / 255.f, 200.f / 255.f, 210.f / 255.f, 1.0f });
 		m_color_gen = new ColorGenerator(m_biome_colors, 0.5f);
+
+		m_light_pos = glm::vec3(0, 0, 200);
 	}
 
 	void HydraulicErosion::clear()
@@ -62,11 +64,11 @@ namespace he
 
 	void HydraulicErosion::update(float deltaTime)
 	{
-		if (Window::isKeyPressed(GLFW_KEY_I)) 
+		if (Window::isKeyPressed(GLFW_KEY_I))
 			m_draw_mode = GL_TRIANGLES;
 		if (Window::isKeyPressed(GLFW_KEY_O))
 			m_draw_mode = GL_LINES;
-		if (Window::isKeyPressed(GLFW_KEY_T)) 
+		if (Window::isKeyPressed(GLFW_KEY_T))
 			m_draw_terrain = !m_draw_terrain;
 		if (Window::isKeyPressed(GLFW_KEY_U))
 		{
@@ -78,18 +80,22 @@ namespace he
 			}
 		}
 
+
 		for (int i = 0; i < m_DROPS_PER_ITER; i++)
 		{
+			if (m_n_drops > m_MAX_DROPS)
+				break;
 			// Create a new drop
 			float x = util::random::Range(m_grid_size.x - 1);
 			float y = util::random::Range(m_grid_size.y - 1);
 
 			// Simulate the drop
 			simulateDroplet(x, y);
-			once = false;
+			m_n_drops++;
+			
 		}
 
-		m_color_gen->generateColors(m_height_data, 40);
+		m_color_gen->generateColors(m_height_data, m_grid_size, 40);
 		m_terrain->update(m_height_data);
 		m_water->update(m_droplets);
 	}
@@ -276,8 +282,13 @@ namespace he
 	{
 		m_shader->begin();
 
+		glm::mat4 normalMatrix = glm::transpose(glm::inverse(model));
+
 		m_shader->setMat4("u_ProjectionView", pvMatrix);
 		m_shader->setMat4("u_Model", model);
+		//m_shader->setMat4("u_NormalMatrix", normalMatrix);
+		m_shader->setVec3("u_LightPos", m_light_pos);
+		m_shader->setVec3("u_LightColor", glm::vec3(1, 1, 1));
 
 		m_terrain->bind();
 		m_terrain->draw(m_draw_mode);
@@ -302,7 +313,7 @@ namespace he
 	void HydraulicErosion::generateGrid(glm::vec2 size, float frequency, float amplitude, int octaves)
 	{
 		std::vector<GLuint> indices;
-		
+
 		for (int y = 0; y < size.y; y++)
 		{
 			for (int x = 0; x < size.x; x++)

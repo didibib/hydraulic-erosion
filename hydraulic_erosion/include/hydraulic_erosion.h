@@ -39,7 +39,7 @@ namespace he
         void draw(float) override;
 
     private:
-        bool once = true;
+        glm::vec3 m_light_pos;
 
         // heightmap
         std::vector<Vertex> m_height_data;
@@ -53,11 +53,11 @@ namespace he
 
         std::vector<Vertex> m_droplets;
 		VertexBuffer* m_water = nullptr;
-        int m_n_drops;                      // Keeps track of how many drops we have already simulated
+        int m_n_drops = 0;                      // Keeps track of how many drops we have already simulated
         DropletSettings m_ds;
 
-        const int m_MAX_DROPS = 100;
-        const int m_DROPS_PER_ITER = 10;
+        const int m_MAX_DROPS = 100000;
+        const int m_DROPS_PER_ITER = 1000;
         const int m_MAX_STEPS = 64;         // Maximum number of steps a droplet will take.
 
         void distribute(Droplet&, glm::vec2 pos, float sediment);

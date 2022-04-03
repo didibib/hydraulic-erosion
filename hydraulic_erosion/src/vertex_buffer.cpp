@@ -50,7 +50,7 @@ namespace he
 		// UV (location = 2) 
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
 		glEnableVertexAttribArray(2);
-		// Normal (location = 3
+		// Normal (location = 3)
 		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 		glEnableVertexAttribArray(3);
 

@@ -7,7 +7,7 @@ namespace he
 	{
 	public:
 		ColorGenerator(std::vector<glm::vec4>& biomeColors, float spread);
-		void generateColors(std::vector<Vertex>& heightData, float amplitude);
+		void generateColors(std::vector<Vertex>& heightData, glm::vec2 size, float amplitude);
 	private:
 		std::vector<glm::vec4> m_biome_colors;
 		float m_spread;
