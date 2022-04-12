@@ -53,8 +53,10 @@ set(TESSEL_SHADER
 )
 
 set(HE
-    "include/hydraulic_erosion.h"
-    "src/hydraulic_erosion.cpp"
+    "include/droplet_erosion.h"
+    "src/droplet_erosion.cpp"
+    "include/shallow_erosion.h"
+    "src/shallow_erosion.cpp"
 )
 
 set(DROPLET

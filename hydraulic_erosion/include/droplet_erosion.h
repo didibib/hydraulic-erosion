@@ -28,11 +28,11 @@ namespace he
         int radius;
     };
 
-    class HydraulicErosion : public Program
+    class DropletErosion : public Program
     {
     public:
-        HydraulicErosion();
-        ~HydraulicErosion();
+        DropletErosion();
+        ~DropletErosion();
         void init() override;
         void clear() override;
         void update(float) override;

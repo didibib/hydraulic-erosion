@@ -1,11 +1,12 @@
 #include "hepch.h"
 #include "window.h"
-#include "hydraulic_erosion.h"
+#include "shallow_erosion.h"
+#include "droplet_erosion.h"
 
 using namespace he;
 
 Window& window = Window::getInstance();
-Program* hydra = new HydraulicErosion();
+Program* hydra = new ShallowErosion();
 
 int main(int argc, char* argv[])
 {

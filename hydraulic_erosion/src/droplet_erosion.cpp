@@ -1,5 +1,5 @@
 #include "hepch.h"
-#include "hydraulic_erosion.h"
+#include "droplet_erosion.h"
 #include "vertex_buffer.h"
 #include "basic_shader.h"
 #include "util.h"
@@ -8,11 +8,11 @@
 
 namespace he
 {
-	HydraulicErosion::HydraulicErosion()
+	DropletErosion::DropletErosion()
 	{
 	}
 
-	HydraulicErosion::~HydraulicErosion()
+	DropletErosion::~DropletErosion()
 	{
 		delete m_color_gen;
 		delete m_terrain;
@@ -21,7 +21,7 @@ namespace he
 		delete m_water;
 	}
 
-	void HydraulicErosion::init()
+	void DropletErosion::init()
 	{
 		m_grid_size = glm::vec2(256, 256);
 		generateGrid(m_grid_size, 3, 40, 4);
@@ -55,14 +55,14 @@ namespace he
 		m_light_pos = glm::vec3(0, 0, 200);
 	}
 
-	void HydraulicErosion::clear()
+	void DropletErosion::clear()
 	{
 		auto clear_color = glm::vec4(245.f / 255.0f, 245.f / 255.0f, 220.f / 255.0f, 1.0f);
 		glClearColor(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
-	void HydraulicErosion::update(float deltaTime)
+	void DropletErosion::update(float deltaTime)
 	{
 		if (Window::isKeyPressed(GLFW_KEY_I))
 			m_draw_mode = GL_TRIANGLES;
@@ -100,7 +100,7 @@ namespace he
 		m_water->update(m_droplets);
 	}
 
-	void HydraulicErosion::simulateDroplet(float startX, float startY)
+	void DropletErosion::simulateDroplet(float startX, float startY)
 	{
 		int x, y;
 		float u, v;
@@ -174,7 +174,7 @@ namespace he
 		}
 	}
 
-	void HydraulicErosion::distribute(Droplet& droplet, glm::vec2 pos, float sediment)
+	void DropletErosion::distribute(Droplet& droplet, glm::vec2 pos, float sediment)
 	{
 		droplet.sediment -= sediment;
 		// Use bilinear interpolation to distribute the sediment over the four adjacent points.
@@ -202,7 +202,7 @@ namespace he
 		addHeight(x + 1, y + 1, sediment * (d4 / dTotal));
 	}
 
-	void HydraulicErosion::erode(Droplet& d, glm::vec2 pos, float amount)
+	void DropletErosion::erode(Droplet& d, glm::vec2 pos, float amount)
 	{
 		std::vector<float> weights;
 		std::vector<glm::vec2> positions;
@@ -241,7 +241,7 @@ namespace he
 		d.sediment += amount;
 	}
 
-	float HydraulicErosion::height_bli(float _x, float _y)
+	float DropletErosion::height_bli(float _x, float _y)
 	{
 		int x = floor(_x);
 		int y = floor(_y);
@@ -254,19 +254,19 @@ namespace he
 		return diff1 * (1 - v) + diff2 * v;
 	}
 
-	float HydraulicErosion::height(int x, int y)
+	float DropletErosion::height(int x, int y)
 	{
 		int index = x + y * m_grid_size.x;
 		return m_height_data[index].position.z;
 	}
 
-	void HydraulicErosion::addHeight(int x, int y, float height)
+	void DropletErosion::addHeight(int x, int y, float height)
 	{
 		int index = x + y * m_grid_size.x;
 		m_height_data[index].position.z += height;
 	}
 
-	void HydraulicErosion::draw(float deltaTime)
+	void DropletErosion::draw(float deltaTime)
 	{
 		Camera& camera = Window::getCamera();
 
@@ -278,7 +278,7 @@ namespace he
 		drawDroplets(projectionView, model);
 	}
 
-	void HydraulicErosion::drawTerrain(glm::mat4& pvMatrix, glm::mat4 model)
+	void DropletErosion::drawTerrain(glm::mat4& pvMatrix, glm::mat4 model)
 	{
 		m_shader->begin();
 
@@ -297,7 +297,7 @@ namespace he
 		m_shader->end();
 	}
 
-	void HydraulicErosion::drawDroplets(glm::mat4& pvMatrix, glm::mat4 model)
+	void DropletErosion::drawDroplets(glm::mat4& pvMatrix, glm::mat4 model)
 	{
 		m_point_shader->begin();
 		m_point_shader->setMat4("u_ProjectionView", pvMatrix);
@@ -310,7 +310,7 @@ namespace he
 		m_point_shader->end();
 	}
 
-	void HydraulicErosion::generateGrid(glm::vec2 size, float frequency, float amplitude, int octaves)
+	void DropletErosion::generateGrid(glm::vec2 size, float frequency, float amplitude, int octaves)
 	{
 		std::vector<GLuint> indices;
 
