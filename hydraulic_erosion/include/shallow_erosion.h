@@ -76,6 +76,7 @@ namespace he
         // Contains the information necessary for shallow water model
         std::vector<GridPoint> m_grid_data;
         GlobalParameters m_gp;
+        std::string m_texture_key;
 
         int m_iterations;
 
@@ -88,6 +89,7 @@ namespace he
         Shader* m_shader = nullptr;
         Shader* m_water_shader = nullptr;
         Shader* m_point_shader = nullptr;
+        Shader* m_matcap_shader = nullptr;
         GLenum m_draw_mode = GL_TRIANGLES;
         bool m_draw_terrain = true;
         bool m_draw_water = true;

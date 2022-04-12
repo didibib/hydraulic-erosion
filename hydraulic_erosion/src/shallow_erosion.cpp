@@ -5,6 +5,7 @@
 #include "util.h"
 #include "window.h"
 #include "colors.h"
+#include "texture_manager.h"
 
 namespace he
 {
@@ -19,13 +20,14 @@ namespace he
 		delete m_water;
 		delete m_shader;
 		delete m_point_shader;
+		delete m_water_shader;
 	}
 
 	void ShallowErosion::init()
 	{
 		m_grid_size = glm::vec2(256);
 		generateGrid(m_grid_size, 3, 80, 4);
-		
+
 		m_light_pos = glm::vec3(0, 0, 200);
 
 		m_shader = new BasicShader;
@@ -36,6 +38,11 @@ namespace he
 
 		m_point_shader = new BasicShader;
 		m_point_shader->load(util::SHADER_DIR_STR + "point");
+
+		m_matcap_shader = new BasicShader;
+		m_matcap_shader->load(util::SHADER_DIR_STR + "matcap");
+
+		TextureManager::getInstance().Load(util::SHADER_DIR_STR + "matcap.png", "matcap");
 
 		// Colors
 		m_biome_colors.push_back({ 201.f / 255.f, 178.f / 255.f, 99.f / 255.f, 1.0f });
@@ -96,21 +103,21 @@ namespace he
 
 	void ShallowErosion::drawTerrain(glm::mat4& pvMatrix, glm::mat4 model)
 	{
-		m_shader->begin();
+		m_matcap_shader->begin();
 
-		//glm::mat4 normalMatrix = glm::transpose(glm::inverse(model));
+		glm::mat4 normalMatrix = glm::transpose(glm::inverse(model));
 
-		m_shader->setMat4("u_ProjectionView", pvMatrix);
-		m_shader->setMat4("u_Model", model);
-		//m_shader->setMat4("u_NormalMatrix", normalMatrix);
-		m_shader->setVec3("u_LightPos", m_light_pos);
-		m_shader->setVec3("u_LightColor", glm::vec3(1, 1, 1));
-
-		m_terrain->bind();
+		m_matcap_shader->setMat4("u_ProjectionView", pvMatrix);
+		m_matcap_shader->setMat4("u_Model", model);
+		m_matcap_shader->setMat4("u_NormalMatrix", normalMatrix);
+		m_matcap_shader->setVec3("u_CameraPos", Window::getCamera().getPos());
+		/*m_matcap_shader->setVec3("u_LightPos", m_light_pos);
+		m_matcap_shader->setVec3("u_LightColor", glm::vec3(1, 1, 1));*/
+		
+		TextureManager::getInstance().Bind(m_texture_key, GL_TEXTURE0);
 		m_terrain->draw(m_draw_mode);
-		m_terrain->unbind();
 
-		m_shader->end();
+		m_matcap_shader->end();
 	}
 
 	void ShallowErosion::drawWater(glm::mat4& pvMatrix, glm::mat4 model)
@@ -120,9 +127,7 @@ namespace he
 		m_water_shader->setMat4("u_ProjectionView", pvMatrix);
 		m_water_shader->setMat4("u_Model", model);
 
-		m_water->bind();
 		m_water->draw(m_draw_mode);
-		m_water->unbind();
 
 		m_water_shader->end();
 	}
@@ -188,7 +193,7 @@ namespace he
 
 	void ShallowErosion::incrementWater(float deltaTime)
 	{
-		for(int i = 0; i < m_grid_data.size(); i++)
+		for (int i = 0; i < m_grid_data.size(); i++)
 		{
 			auto& g = m_grid_data[i];
 			g.d = g.d + deltaTime * g.r * m_gp.rain_rate;
@@ -285,7 +290,7 @@ namespace he
 			}
 		}
 	}
-	
+
 	// https://math.stackexchange.com/questions/1044044/local-tilt-angle-based-on-height-field
 	float ShallowErosion::localTiltAngle(int index)
 	{
@@ -378,7 +383,7 @@ namespace he
 			m_water_data[i].position.z = m_grid_data[i].b + m_grid_data[i].d - m_gp.water_z_offset;
 		}
 	}
-	 
+
 	void ShallowErosion::calculateSoilFlow(float deltaTime)
 	{
 		for (int i = 0; i < m_grid_data.size(); i++)
@@ -399,8 +404,8 @@ namespace he
 				if (j >= 4)
 					d = sqrtf(2);
 
-				float alpha = glm::tan((g.b - gi.b) / d);
-				if (g.b - gi.b < 0 && glm::tan(alpha) > g.R * m_gp.talus_angle_tang_coeff + m_gp.talus_angle_tang_bias)
+				float talus_angle = glm::tan((g.b - gi.b) / d);
+				if (g.b - gi.b < 0 && glm::tan(talus_angle) > g.R * m_gp.talus_angle_tang_coeff + m_gp.talus_angle_tang_bias)
 				{
 					A.push_back(j);
 					sumA += gi.b;
@@ -408,9 +413,11 @@ namespace he
 			}
 			float deltaS = deltaTime * m_gp.thermal_erosion_rate * g.R * H / 2;
 
+			if (A.size() == 0) continue;
+
 			for (int j = 0; j < A.size(); j++)
 			{
-				auto newPos = getNewPos(i, m_directions[j]);
+				auto newPos = getNewPos(i, m_directions[A[j]]);
 				if (!newPos) continue;
 				auto& gi = m_grid_data[newPos->x + newPos->y * m_grid_size.x];
 
@@ -422,9 +429,7 @@ namespace he
 
 				float soil = deltaS * gi.b / sumA;
 				gi.pipes.push_back(soil);
-
 			}
-			g.pipes.push_back(-deltaS);
 		}
 	}
 

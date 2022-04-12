@@ -86,8 +86,7 @@ namespace he
 	{
 		if (!m_is_bind)
 		{
-			ERROR("Forgot to bind the buffer for: {}", m_name);
-			return;
+			glBindVertexArray(m_vao);
 		}
 		if (m_ebo != 0)
 		{
@@ -97,5 +96,6 @@ namespace he
 		{
 			glDrawArrays(mode, 0, m_n_vertices);
 		}
+		glBindVertexArray(0);
 	}
 }

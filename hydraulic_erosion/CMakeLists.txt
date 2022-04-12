@@ -74,6 +74,12 @@ set(COLORS
     "src/colors.cpp"
 )
 
+set(TEXTURE 
+    "include/stb_image.h"
+    "include/texture_manager.h"
+    "src/texture_manager.cpp"
+)
+
 add_executable(${TARGET}
     ${ROOT_FILES}
 	${PCH}
@@ -89,6 +95,7 @@ add_executable(${TARGET}
     ${DROPLET}
     ${HEIGHT_MAP}
     ${COLORS}
+    ${TEXTURE}
 )
 
 source_group(\\ FILES ${ROOT_FILES})
@@ -99,6 +106,7 @@ source_group(window FILES ${WINDOW})
 source_group(scene/camera FILES ${CAMERA})
 source_group(scene/vertex-buffer FILES ${VERTEX_BUFFER})
 source_group(scene/shader FILES ${SHADER} ${BASIC_SHADER} ${TESSEL_SHADER})
+source_group(scene/texture FILES ${TEXTURE})
 source_group(hydraulic-erosion FILES ${HE} ${DROPLET} ${HEIGHT_MAP})
 
 set_target_output_directories(${TARGET})
