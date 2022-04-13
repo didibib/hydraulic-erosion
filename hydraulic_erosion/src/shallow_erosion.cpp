@@ -27,6 +27,10 @@ namespace he
 	{
 		m_grid_size = glm::vec2(256);
 		generateGrid(m_grid_size, 3, 80, 4);
+		//generateGrid(m_grid_size, 1, 0, 1);
+		//generateSphere(m_grid_size, 50);
+		createTerrainMesh(m_grid_size);
+		updateVertexHeight();
 
 		m_light_pos = glm::vec3(0, 0, 200);
 
@@ -69,17 +73,25 @@ namespace he
 		if (Window::isKeyPressed(GLFW_KEY_C))
 			m_draw_water = !m_draw_water;
 
-		INFO("Iteration: {}", m_iterations++);
+		//INFO("Iteration: {}", m_iterations++);
 
-		deltaTime = 0.1;
-		incrementWater(deltaTime);
-		updateFlow(deltaTime);
-		calculateSoilFlow(deltaTime);
-		erodeAndDeposit(deltaTime);
-		transportSediment(deltaTime);
-		applyThermalErosion();
-		evaporateWater(deltaTime);
-		updateVertexHeight();
+		if (Window::isKeyPressed(GLFW_KEY_I))// && !m_i_pressed)
+		{
+			deltaTime = 0.1;
+			for (int i = 0; i < 100; i++)
+			{
+				incrementWater(deltaTime);
+				updateFlow(deltaTime);
+				calculateSoilFlow(deltaTime);
+				erodeAndDeposit(deltaTime);
+				transportSediment(deltaTime);
+				applyThermalErosion();
+				evaporateWater(deltaTime);
+			}
+			updateVertexHeight();
+		}
+
+		m_i_pressed = Window::isKeyPressed(GLFW_KEY_I);
 
 		INFO("Height at i 4000: {}", m_grid_data[4000].b);
 
@@ -135,8 +147,6 @@ namespace he
 
 	void ShallowErosion::generateGrid(glm::vec2 size, float frequency, float amplitude, int octaves)
 	{
-		std::vector<GLuint> indices;
-
 		for (int y = 0; y < size.y; y++)
 		{
 			for (int x = 0; x < size.x; x++)
@@ -161,6 +171,28 @@ namespace he
 				m_grid_data.push_back(p);
 			}
 		}
+
+		
+	}
+
+	void ShallowErosion::generateSphere(glm::ivec2 size, float r)
+	{
+		glm::ivec2 center = size / 2;
+		for(int i = 0; i < m_height_data.size(); i++)
+		{
+			int x = i % size.x;
+			int y = i / size.x;
+			x -= center.x;
+			y -= center.y;
+			float z = sqrtf(std::max(0.f, r*r - x*x - y*y));
+			m_height_data[i].position.z = z;
+			m_grid_data[i].b = z;
+		}
+	}
+
+	void ShallowErosion::createTerrainMesh(glm::vec2 size)
+	{
+		std::vector<GLuint> indices;
 
 		for (int y = 0; y < size.y - 1; y++)
 		{
@@ -398,22 +430,19 @@ namespace he
 				auto newPos = getNewPos(i, m_directions[j]);
 				if (!newPos) continue;
 				auto& gi = m_grid_data[newPos->x + newPos->y * m_grid_size.x];
-				H = std::max(H, g.b - gi.b);
+				float heightDiff = g.b - gi.b;
+				H = std::max(H, heightDiff);
 
-				float d = 1;
-				if (j >= 4)
-					d = sqrtf(2);
-
-				float talus_angle = glm::tan((g.b - gi.b) / d);
-				if (g.b - gi.b < 0 && glm::tan(talus_angle) > g.R * m_gp.talus_angle_tang_coeff + m_gp.talus_angle_tang_bias)
+				if (heightDiff > m_gp.talus_angle)
 				{
 					A.push_back(j);
-					sumA += gi.b;
+					sumA += heightDiff;
 				}
 			}
-			float deltaS = deltaTime * m_gp.thermal_erosion_rate * g.R * H / 2;
+			if (H < m_gp.talus_angle)
+				continue;
 
-			if (A.size() == 0) continue;
+			float deltaS = deltaTime * m_gp.thermal_erosion_rate * g.R * H / 2;
 
 			for (int j = 0; j < A.size(); j++)
 			{
@@ -421,15 +450,10 @@ namespace he
 				if (!newPos) continue;
 				auto& gi = m_grid_data[newPos->x + newPos->y * m_grid_size.x];
 
-				//int oppositeDir = 0;
-				//if (j < 4)
-				//	oppositeDir = (j + 2) % 4;
-				//else
-				//	oppositeDir = ((j - 2) % 4) + 4;
-
-				float soil = deltaS * gi.b / sumA;
+				float soil = deltaS * (g.b - gi.b) / sumA;
 				gi.pipes.push_back(soil);
 			}
+			g.pipes.push_back(-deltaS);
 		}
 	}
 
@@ -442,9 +466,8 @@ namespace he
 			for (int j = 0; j < g.pipes.size(); j++)
 			{
 				g.b += g.pipes[j];
-				g.pipes[j] = 0;
-				g.pipes.clear();
 			}
+			g.pipes.clear();
 		}
 	}
 }

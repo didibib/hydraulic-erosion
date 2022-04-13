@@ -11,19 +11,20 @@ namespace he
 
     struct GlobalParameters
     {
-        float rain_rate = 1;                // K_r      : [0.0;0.05]
-        float water_evap_rate = 0.015;      // K_e      : [0.0;0.05]
+        float rain_rate = .1;                // K_r      : [0.0;0.05]
+        float water_evap_rate = 0.035;      // K_e      : [0.0;0.05]
         float gravity = 9.81;               // g        : [0.1;20]
         float sediment_capacity = 1;        // K_c      : [0.1;3]
-        float thermal_erosion_rate = 0.15;  // K_t      : [0.0;3]  
+        float thermal_erosion_rate = .5;  // K_t      : [0.0;3]  
         float cross_section_area = 20;      // A        : [0.1;60]
         float min_local_tilt_angle = 0.1f;
-        float soil_suspension_rate = 0.5f;  // K_s      : [0.1;2]
-        float sediment_depo_rate = 1.f;     // K_d      : [0.1;3]
+        float soil_suspension_rate = 1.0f;  // K_s      : [0.1;2]
+        float sediment_depo_rate = 2.f;     // K_d      : [0.1;3]
         float sediment_soft_rate = 5;       // K_h      : [0.0;10]
         float max_erosion_depth = 10;       // K_dmax   : [0.0;40] 
         float talus_angle_tang_coeff = 0.8; // K_a      : [0.0;1]
         float talus_angle_tang_bias = 0.1;  // K_i      : [0.0;1]
+        float talus_angle = 0.5;
         float hardness_lower_limit = 0.3;   // R_min    : [0.0;1]
         float water_z_offset = 1.f;         // delta y for rendering
     };
@@ -92,7 +93,9 @@ namespace he
         Shader* m_matcap_shader = nullptr;
         GLenum m_draw_mode = GL_TRIANGLES;
         bool m_draw_terrain = true;
-        bool m_draw_water = true;
+        bool m_draw_water = false;
+
+        bool m_i_pressed = false;
 
         const std::vector<glm::ivec2> m_directions = {
             // First 4 are horizontal and vertical 
@@ -104,6 +107,8 @@ namespace he
         void drawTerrain(glm::mat4& pvMatrix, glm::mat4 model);
         void drawWater(glm::mat4& pvMatrix, glm::mat4 model);
         void generateGrid(glm::vec2 size, float frequency = 1.f, float amplitude = 1.f, int octaves = 1);
+        void generateSphere(glm::ivec2 size, float r);
+        void createTerrainMesh(glm::vec2 size);
 
         void incrementWater(float deltaTime);
         void updateFlow(float deltaTime);
