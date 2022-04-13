@@ -121,12 +121,16 @@ ignore_precompiled_header_msvc(IGNORE_PCH)
 set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
 target_compile_definitions(${TARGET} PUBLIC SHADER_DIR_M=${SHADER_DIR})
 
+
 target_include_directories(${TARGET} PUBLIC
     "include"
 )
+
+find_package(OpenMP)
 
 target_link_libraries(${TARGET} PUBLIC
 	glfw
 	glm
     spdlog::spdlog
+    OpenMP::OpenMP_CXX
 )

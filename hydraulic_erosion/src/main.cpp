@@ -6,17 +6,17 @@
 using namespace he;
 
 Window& window = Window::getInstance();
-Program* hydra = new ShallowErosion();
+Program* droplet = new DropletErosion();
+Program* shallow = new ShallowErosion();
 
 int main(int argc, char* argv[])
 {
 	logger::init();
 
 	window.init(800, 600, "Hydraulic Erosion");
-	hydra->init();
 
-	window.run(hydra);
+	window.run(shallow);
 
 	logger::shutdown();
-	delete hydra;
+	delete shallow;
 }

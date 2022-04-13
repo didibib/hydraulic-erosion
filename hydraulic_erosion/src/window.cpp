@@ -61,6 +61,7 @@ namespace he
 
 	void Window::run(Program* program)
 	{
+		program->init();
 		static float currentTime = 0, previousTime = 0;
 		while (!glfwWindowShouldClose(m_glfw_window))
 		{

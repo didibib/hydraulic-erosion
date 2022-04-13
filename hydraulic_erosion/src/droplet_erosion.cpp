@@ -141,8 +141,7 @@ namespace he
 			d.pos = oldPos + d.dir;
 
 			// Check if new position is within the bounds of the grid
-			if (d.pos.x < 0 || d.pos.x >= m_grid_size.x - 1
-				|| d.pos.y < 0 || d.pos.y >= m_grid_size.y - 1)
+			if (d.pos.x < 0 || d.pos.x >= m_grid_size.x - 1 || d.pos.y < 0 || d.pos.y >= m_grid_size.y - 1)
 				break;
 
 			float hNew = height_bli(d.pos.x, d.pos.y);

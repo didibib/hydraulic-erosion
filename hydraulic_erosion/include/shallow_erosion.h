@@ -18,8 +18,8 @@ namespace he
         float thermal_erosion_rate = .5;  // K_t      : [0.0;3]  
         float cross_section_area = 20;      // A        : [0.1;60]
         float min_local_tilt_angle = 0.1f;
-        float soil_suspension_rate = 1.0f;  // K_s      : [0.1;2]
-        float sediment_depo_rate = 2.f;     // K_d      : [0.1;3]
+        float soil_suspension_rate = 2.0f;  // K_s      : [0.1;2]
+        float sediment_depo_rate = 3.f;     // K_d      : [0.1;3]
         float sediment_soft_rate = 5;       // K_h      : [0.0;10]
         float max_erosion_depth = 10;       // K_dmax   : [0.0;40] 
         float talus_angle_tang_coeff = 0.8; // K_a      : [0.0;1]
@@ -31,13 +31,13 @@ namespace he
 
     struct GridPoint
     {
-        GridPoint(float _b, float _d, float _s, std::vector<float>& _flux, std::vector<float>& _pipes, glm::vec2& _v, float _r, float _R){
+        GridPoint(float _b, float _r, float _R){
             b = _b;
-            d = _d;
-            s = _s;
-            flux = _flux;
-            pipes = _pipes;
-            v = _v;
+            d = 0;
+            s = 0;
+            flux = std::vector<float>(4, 0);
+            pipes = std::vector<float>(8, 0);
+            v = glm::vec2(0);
             r = _r;
             R = _R;
         }

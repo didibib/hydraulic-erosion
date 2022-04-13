@@ -26,9 +26,9 @@ namespace he
 	void ShallowErosion::init()
 	{
 		m_grid_size = glm::vec2(256);
-		generateGrid(m_grid_size, 3, 80, 4);
-		//generateGrid(m_grid_size, 1, 0, 1);
-		//generateSphere(m_grid_size, 50);
+		//generateGrid(m_grid_size, 3, 80, 4);
+		generateGrid(m_grid_size, 1, 0, 1);
+		generateSphere(m_grid_size, 50);
 		createTerrainMesh(m_grid_size);
 		updateVertexHeight();
 
@@ -73,27 +73,24 @@ namespace he
 		if (Window::isKeyPressed(GLFW_KEY_C))
 			m_draw_water = !m_draw_water;
 
-		//INFO("Iteration: {}", m_iterations++);
+		if(Window::isKeyPressed(GLFW_KEY_I)) m_draw_water = true;
 
-		if (Window::isKeyPressed(GLFW_KEY_I))// && !m_i_pressed)
+		if (m_draw_water)
 		{
 			deltaTime = 0.1;
-			for (int i = 0; i < 100; i++)
+			for (int i = 0; i < 10; i++)
 			{
-				incrementWater(deltaTime);
-				updateFlow(deltaTime);
+				INFO("Iteration {}/100", i);
+				//incrementWater(deltaTime);
+				//updateFlow(deltaTime);
 				calculateSoilFlow(deltaTime);
-				erodeAndDeposit(deltaTime);
-				transportSediment(deltaTime);
+				//erodeAndDeposit(deltaTime);
+				//transportSediment(deltaTime);
 				applyThermalErosion();
-				evaporateWater(deltaTime);
+				//evaporateWater(deltaTime);
 			}
 			updateVertexHeight();
 		}
-
-		m_i_pressed = Window::isKeyPressed(GLFW_KEY_I);
-
-		INFO("Height at i 4000: {}", m_grid_data[4000].b);
 
 		m_color_gen->generateColors(m_height_data, m_grid_size, 40);
 		m_terrain->update(m_height_data);
@@ -109,8 +106,8 @@ namespace he
 
 		if (m_draw_terrain)
 			drawTerrain(projectionView, model);
-		if (m_draw_water)
-			drawWater(projectionView, model);
+		/*if (m_draw_water)
+			drawWater(projectionView, model);*/
 	}
 
 	void ShallowErosion::drawTerrain(glm::mat4& pvMatrix, glm::mat4 model)
@@ -119,12 +116,9 @@ namespace he
 
 		glm::mat4 normalMatrix = glm::transpose(glm::inverse(model));
 
-		m_matcap_shader->setMat4("u_ProjectionView", pvMatrix);
+		m_matcap_shader->setMat4("u_Projection", Window::getCamera().getProjMatrix());
 		m_matcap_shader->setMat4("u_Model", model);
-		m_matcap_shader->setMat4("u_NormalMatrix", normalMatrix);
-		m_matcap_shader->setVec3("u_CameraPos", Window::getCamera().getPos());
-		/*m_matcap_shader->setVec3("u_LightPos", m_light_pos);
-		m_matcap_shader->setVec3("u_LightColor", glm::vec3(1, 1, 1));*/
+		m_matcap_shader->setMat4("u_View", Window::getCamera().getViewMatrix());
 		
 		TextureManager::getInstance().Bind(m_texture_key, GL_TEXTURE0);
 		m_terrain->draw(m_draw_mode);
@@ -143,7 +137,6 @@ namespace he
 
 		m_water_shader->end();
 	}
-
 
 	void ShallowErosion::generateGrid(glm::vec2 size, float frequency, float amplitude, int octaves)
 	{
@@ -167,12 +160,10 @@ namespace he
 				v2.color = glm::vec4(0, 0, 1, 0.5);
 				m_water_data.push_back(v2);
 
-				GridPoint p(z * amplitude, 0.f, 0.f, std::vector<float>{0.f, 0.f, 0.f, 0.f}, std::vector<float>{}, glm::vec2(0.f, 0.f), 1, 1);
+				GridPoint p(z * amplitude, 1, 1);
 				m_grid_data.push_back(p);
 			}
-		}
-
-		
+		}		
 	}
 
 	void ShallowErosion::generateSphere(glm::ivec2 size, float r)
@@ -224,7 +215,8 @@ namespace he
 	}
 
 	void ShallowErosion::incrementWater(float deltaTime)
-	{
+	{ 
+		#pragma omp parallel for
 		for (int i = 0; i < m_grid_data.size(); i++)
 		{
 			auto& g = m_grid_data[i];
@@ -236,6 +228,7 @@ namespace he
 	{
 		// For each cell
 		// Calculate the outgoing flow
+		#pragma omp parallel for
 		for (int i = 0; i < m_grid_data.size(); i++)
 		{
 			auto& g = m_grid_data[i];
@@ -264,6 +257,7 @@ namespace he
 
 		// For each cell, again,
 		// Calculate the Delta V water height changes and velocity
+		#pragma omp parallel for
 		for (int i = 0; i < m_grid_data.size(); i++)
 		{
 			auto& g = m_grid_data[i];
@@ -298,6 +292,7 @@ namespace he
 
 	void ShallowErosion::erodeAndDeposit(float deltaTime)
 	{
+		#pragma omp parallel for
 		for (int i = 0; i < m_grid_data.size(); i++)
 		{
 			auto& g = m_grid_data[i];
@@ -371,6 +366,7 @@ namespace he
 
 	void ShallowErosion::transportSediment(float deltaTime)
 	{
+		#pragma omp parallel for
 		for (int i = 0; i < m_grid_data.size(); i++)
 		{
 			auto& g = m_grid_data[i];
@@ -400,6 +396,7 @@ namespace he
 
 	void ShallowErosion::evaporateWater(float deltaTime)
 	{
+		#pragma omp parallel for
 		for (int i = 0; i < m_grid_data.size(); i++)
 		{
 			auto& g = m_grid_data[i];
@@ -409,6 +406,7 @@ namespace he
 
 	void ShallowErosion::updateVertexHeight()
 	{
+		#pragma omp parallel for
 		for (int i = 0; i < m_grid_data.size(); i++)
 		{
 			m_height_data[i].position.z = m_grid_data[i].b;
@@ -418,6 +416,7 @@ namespace he
 
 	void ShallowErosion::calculateSoilFlow(float deltaTime)
 	{
+		#pragma omp parallel for
 		for (int i = 0; i < m_grid_data.size(); i++)
 		{
 			auto& g = m_grid_data[i];
@@ -450,15 +449,23 @@ namespace he
 				if (!newPos) continue;
 				auto& gi = m_grid_data[newPos->x + newPos->y * m_grid_size.x];
 
+				int dir = A[j];
+				int oppositeDir = 0;
+				if(dir < 4)
+					oppositeDir = (dir+2) % 4;
+				else
+					oppositeDir = ((dir-2) % 4) + 4;
+
 				float soil = deltaS * (g.b - gi.b) / sumA;
-				gi.pipes.push_back(soil);
+				gi.pipes[oppositeDir] = soil;
+				g.pipes[dir] = -soil;
 			}
-			g.pipes.push_back(-deltaS);
 		}
 	}
 
 	void ShallowErosion::applyThermalErosion()
 	{
+		#pragma omp parallel for
 		for (int i = 0; i < m_grid_data.size(); i++)
 		{
 			auto& g = m_grid_data[i];
@@ -466,8 +473,8 @@ namespace he
 			for (int j = 0; j < g.pipes.size(); j++)
 			{
 				g.b += g.pipes[j];
+				g.pipes[j] = 0;
 			}
-			g.pipes.clear();
 		}
 	}
 }
