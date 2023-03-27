@@ -147,6 +147,7 @@ namespace he
 	void Window::frameBufferCallback(GLFWwindow* window, int width, int height)
 	{
 		glViewport(0, 0, width, height);
+		WINDOW.m_camera->onWindowResize(width, height);
 	}
 
 	void Window::cursorEnterCallback(GLFWwindow* window, int entered)

@@ -24,7 +24,7 @@ namespace he
 	void DropletErosion::init()
 	{
 		m_grid_size = glm::vec2(256, 256);
-		generateGrid(m_grid_size, 3, 40, 4);
+		generateGrid(m_grid_size, 1, 70, 4);
 
 		m_water = new VertexBuffer("chwater");
 		m_droplets.resize(1);
@@ -36,13 +36,13 @@ namespace he
 		m_point_shader = new BasicShader;
 		m_point_shader->load(util::SHADER_DIR_STR + "point");
 
-		m_ds.inertia = .04f;
-		m_ds.p_capacity = 8.f;
-		m_ds.p_deposit = .3f;
-		m_ds.p_erosion = .1f;
+		m_ds.inertia = .2f;
+		m_ds.p_capacity = 4.f;
+		m_ds.p_deposit = .01f;
+		m_ds.p_erosion = .005f;
 		m_ds.p_evaporation = .04f;
 		m_ds.min_slope = .01f;
-		m_ds.gravity = 1.f;
+		m_ds.gravity = .5f;
 
 		// Colors
 		m_biome_colors.push_back({ 201.f / 255.f, 178.f / 255.f, 99.f / 255.f, 1.0f });
@@ -80,19 +80,22 @@ namespace he
 			}
 		}
 
+		if (Window::isKeyPressed(GLFW_KEY_I)) m_start_sim = true;
 
-		for (int i = 0; i < m_DROPS_PER_ITER; i++)
+		if (m_start_sim)
 		{
-			if (m_n_drops > m_MAX_DROPS)
-				break;
-			// Create a new drop
-			float x = util::random::Range(m_grid_size.x - 1);
-			float y = util::random::Range(m_grid_size.y - 1);
+			for (int i = 0; i < m_DROPS_PER_ITER; i++)
+			{
+				if (m_n_drops > m_MAX_DROPS)
+					break;
+				// Create a new drop
+				float x = util::random::Range(m_grid_size.x - 1);
+				float y = util::random::Range(m_grid_size.y - 1);
 
-			// Simulate the drop
-			simulateDroplet(x, y);
-			m_n_drops++;
-			
+				// Simulate the drop
+				simulateDroplet(x, y);
+				m_n_drops++;
+			}
 		}
 
 		m_color_gen->generateColors(m_height_data, m_grid_size, 40);
@@ -110,7 +113,7 @@ namespace he
 		d.sediment = 0;
 		d.water = 10;
 		d.vel = 0;
-		d.radius = 2;
+		d.radius = 4;
 
 		for (int i = 0; i < m_MAX_STEPS; i++)
 		{

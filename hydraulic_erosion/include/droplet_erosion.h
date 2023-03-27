@@ -57,12 +57,13 @@ namespace he
         DropletSettings m_ds;
 
         const int m_MAX_DROPS = 100000;
-        const int m_DROPS_PER_ITER = 1000;
+        const int m_DROPS_PER_ITER = 500;
         const int m_MAX_STEPS = 64;         // Maximum number of steps a droplet will take.
 
         void distribute(Droplet&, glm::vec2 pos, float sediment);
         void erode(Droplet&, glm::vec2 pos, float amount);
 
+        bool m_start_sim = false;
         GLenum m_draw_mode = GL_TRIANGLES;
         bool m_draw_terrain = true;
         void drawTerrain(glm::mat4& pvMatrix, glm::mat4 model);

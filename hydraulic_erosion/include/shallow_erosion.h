@@ -11,15 +11,15 @@ namespace he
 
     struct GlobalParameters
     {
-        float rain_rate = .1;                // K_r      : [0.0;0.05]
+        float rain_rate = .05;                // K_r      : [0.0;0.05]
         float water_evap_rate = 0.035;      // K_e      : [0.0;0.05]
         float gravity = 9.81;               // g        : [0.1;20]
-        float sediment_capacity = 1;        // K_c      : [0.1;3]
+        float sediment_capacity = 3;        // K_c      : [0.1;3]
         float thermal_erosion_rate = .5;  // K_t      : [0.0;3]  
         float cross_section_area = 20;      // A        : [0.1;60]
         float min_local_tilt_angle = 0.1f;
-        float soil_suspension_rate = 2.0f;  // K_s      : [0.1;2]
-        float sediment_depo_rate = 3.f;     // K_d      : [0.1;3]
+        float soil_suspension_rate = 0.5f;  // K_s      : [0.1;2]
+        float sediment_depo_rate = 1.f;     // K_d      : [0.1;3]
         float sediment_soft_rate = 5;       // K_h      : [0.0;10]
         float max_erosion_depth = 10;       // K_dmax   : [0.0;40] 
         float talus_angle_tang_coeff = 0.8; // K_a      : [0.0;1]
@@ -33,8 +33,10 @@ namespace he
     {
         GridPoint(float _b, float _r, float _R){
             b = _b;
+            tempB = 0;
             d = 0;
             s = 0;
+            tempS = 0;
             flux = std::vector<float>(4, 0);
             pipes = std::vector<float>(8, 0);
             v = glm::vec2(0);
@@ -43,10 +45,12 @@ namespace he
         }
         // Terrain height
         float b;
+        float tempB;
         // Water height
         float d;
         // Suspended sediment amount
         float s;
+        float tempS;
         // Water outflow flux
         std::vector<float> flux;
         // Soil outflow pipes
@@ -94,6 +98,7 @@ namespace he
         GLenum m_draw_mode = GL_TRIANGLES;
         bool m_draw_terrain = true;
         bool m_draw_water = false;
+        bool m_iterate = false;
 
         bool m_i_pressed = false;
 

@@ -26,9 +26,9 @@ namespace he
 	void ShallowErosion::init()
 	{
 		m_grid_size = glm::vec2(256);
-		//generateGrid(m_grid_size, 3, 80, 4);
+		//generateGrid(m_grid_size, 1, 80, 4);
 		generateGrid(m_grid_size, 1, 0, 1);
-		generateSphere(m_grid_size, 50);
+		generateSphere(m_grid_size, 60);
 		createTerrainMesh(m_grid_size);
 		updateVertexHeight();
 
@@ -73,14 +73,15 @@ namespace he
 		if (Window::isKeyPressed(GLFW_KEY_C))
 			m_draw_water = !m_draw_water;
 
-		if(Window::isKeyPressed(GLFW_KEY_I)) m_draw_water = true;
+		if (Window::isKeyPressed(GLFW_KEY_I) && !m_i_pressed) m_iterate = !m_iterate;
+		m_i_pressed = Window::isKeyPressed(GLFW_KEY_I);
 
-		if (m_draw_water)
+		if (m_iterate)
 		{
 			deltaTime = 0.1;
-			for (int i = 0; i < 10; i++)
+			for (int i = 0; i < 1; i++)
 			{
-				INFO("Iteration {}/100", i);
+				//INFO("Iteration {}/1", i);
 				//incrementWater(deltaTime);
 				//updateFlow(deltaTime);
 				calculateSoilFlow(deltaTime);
@@ -106,8 +107,8 @@ namespace he
 
 		if (m_draw_terrain)
 			drawTerrain(projectionView, model);
-		/*if (m_draw_water)
-			drawWater(projectionView, model);*/
+		if (m_draw_water)
+			drawWater(projectionView, model);
 	}
 
 	void ShallowErosion::drawTerrain(glm::mat4& pvMatrix, glm::mat4 model)
@@ -249,7 +250,9 @@ namespace he
 			// Make sure that we don't flow more water than the cell contains
 			float flowsTotal = 0;
 			for (int j = 0; j < flows.size(); j++) flowsTotal += flows[j];
-			float kFactor = glm::min(1.f, g.d / flowsTotal);
+			float kFactor = 1;
+			if(flowsTotal > g.d)
+				kFactor = glm::min(1.f, g.d / flowsTotal * deltaTime);
 			//float kFactor = glm::max(1.f, g.d / (flowsTotal*deltaTime));
 			// Update the flux of the grid points
 			for (int j = 0; j < flows.size(); j++) g.flux[j] = flows[j] * kFactor;
@@ -297,12 +300,12 @@ namespace he
 		{
 			auto& g = m_grid_data[i];
 
-			float C = m_gp.sediment_capacity * std::min(m_gp.min_local_tilt_angle, localTiltAngle(i)) * glm::length(g.v) * shallowDeepLimiter(g.d);
+			float C = m_gp.sediment_capacity * std::max(m_gp.min_local_tilt_angle, localTiltAngle(i)) * glm::length(g.v) * shallowDeepLimiter(g.d);
 
 			if (g.s < C)
 			{
 				float soil = deltaTime * g.R * m_gp.soil_suspension_rate * (C - g.s);
-				g.b = g.b - soil;
+				g.tempB = g.b - soil;
 				g.s = g.s + soil;
 				g.d = g.d + soil;
 
@@ -310,11 +313,19 @@ namespace he
 			else
 			{
 				float soil = deltaTime * m_gp.sediment_depo_rate * (g.s - C);
-				g.b = g.b + soil;
+				g.tempB = g.b + soil;
 				g.s = g.s - soil;
-				g.d = g.d - soil;
+				g.d = glm::max(0.f, g.d - soil);
 				g.R = std::max(m_gp.hardness_lower_limit, g.R - deltaTime * m_gp.sediment_soft_rate * m_gp.soil_suspension_rate * (g.s - C));
 			}
+		}
+
+#pragma omp parallel for
+		for (int i = 0; i < m_grid_data.size(); i++)
+		{
+			auto& g = m_grid_data[i];
+			g.b = g.tempB;
+			g.tempB = 0;
 		}
 	}
 
@@ -382,6 +393,14 @@ namespace he
 			float diff2 = sediment(x + 1, y + 1) * u + sediment(x, y + 1) * (1 - u);
 
 			g.s = diff1 * (1 - v) + diff2 * v;
+		}
+
+		#pragma omp parallel for
+		for (int i = 0; i < m_grid_data.size(); i++)
+		{
+			auto& g = m_grid_data[i];
+			g.s = g.tempS;
+			g.tempS = 0;
 		}
 	}
 

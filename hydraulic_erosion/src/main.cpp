@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 
 	window.init(800, 600, "Hydraulic Erosion");
 
-	window.run(shallow);
+	window.run(droplet);
 
 	logger::shutdown();
 	delete shallow;
