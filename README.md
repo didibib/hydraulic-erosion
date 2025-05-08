@@ -1,8 +1,7 @@
 ## About
 Hydraulic erosion simulator written as final project for the course Game Physics (INFOMGP) at Utrecht University. Simulates water droplets and thermal erosion. Written in C++.</br>
-By </br>
-Merijn Schepers </br>
-Tariq Bakhtali </br>
+
+*Created by Merijn Schepers & Tariq Bakhtali*
 
 ## Literature 
 Implements the following papers:
